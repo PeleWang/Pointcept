@@ -16,7 +16,7 @@ from .waymo import WaymoDataset
 
 # object
 from .modelnet import ModelNetDataset
-from .shapenet_part import ShapeNetPartDataset
+from .shapenet_part import ShapeNetPartDataset, ShapeNetPartDataset_Brackets
 
 # dataloader
 from .dataloader import MultiDatasetDataloader

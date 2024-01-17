@@ -116,16 +116,16 @@ class InformationWriter(HookBase):
             )
         lr = self.trainer.optimizer.state_dict()["param_groups"][0]["lr"]
         self.trainer.comm_info["iter_info"] += "Lr: {lr:.5f}".format(lr=lr)
-        self.trainer.logger.info(self.trainer.comm_info["iter_info"])
+        # self.trainer.logger.info(self.trainer.comm_info["iter_info"])
         self.trainer.comm_info["iter_info"] = ""  # reset iter info
-        if self.trainer.writer is not None:
-            self.trainer.writer.add_scalar("lr", lr, self.curr_iter)
-            for key in self.model_output_keys:
-                self.trainer.writer.add_scalar(
-                    "train_batch/" + key,
-                    self.trainer.storage.history(key).val,
-                    self.curr_iter,
-                )
+        # if self.trainer.writer is not None:
+        #     self.trainer.writer.add_scalar("lr", lr, self.curr_iter)
+        #     for key in self.model_output_keys:
+        #         self.trainer.writer.add_scalar(
+        #             "train_batch/" + key,
+        #             self.trainer.storage.history(key).val,
+        #             self.curr_iter,
+        #         )
 
     def after_epoch(self):
         epoch_info = "Train result: "
@@ -133,14 +133,14 @@ class InformationWriter(HookBase):
             epoch_info += "{key}: {value:.4f} ".format(
                 key=key, value=self.trainer.storage.history(key).avg
             )
-        self.trainer.logger.info(epoch_info)
-        if self.trainer.writer is not None:
-            for key in self.model_output_keys:
-                self.trainer.writer.add_scalar(
-                    "train/" + key,
-                    self.trainer.storage.history(key).avg,
-                    self.trainer.epoch + 1,
-                )
+        # self.trainer.logger.info(epoch_info)
+        # if self.trainer.writer is not None:
+        #     for key in self.model_output_keys:
+        #         self.trainer.writer.add_scalar(
+        #             "train/" + key,
+        #             self.trainer.storage.history(key).avg,
+        #             self.trainer.epoch + 1,
+        #         )
 
 
 @HOOKS.register_module()
@@ -157,21 +157,21 @@ class CheckpointSaver(HookBase):
                 if current_metric_value > self.trainer.best_metric_value:
                     self.trainer.best_metric_value = current_metric_value
                     is_best = True
-                    self.trainer.logger.info(
-                        "Best validation {} updated to: {:.4f}".format(
-                            current_metric_name, current_metric_value
-                        )
-                    )
-                self.trainer.logger.info(
-                    "Currently Best {}: {:.4f}".format(
-                        current_metric_name, self.trainer.best_metric_value
-                    )
-                )
+                    # self.trainer.logger.info(
+                    #     "Best validation {} updated to: {:.4f}".format(
+                    #         current_metric_name, current_metric_value
+                    #     )
+                    # )
+                # self.trainer.logger.info(
+                #     "Currently Best {}: {:.4f}".format(
+                #         current_metric_name, self.trainer.best_metric_value
+                #     )
+                # )
 
             filename = os.path.join(
                 self.trainer.cfg.save_path, "model", "model_last.pth"
             )
-            self.trainer.logger.info("Saving checkpoint to: " + filename)
+            # self.trainer.logger.info("Saving checkpoint to: " + filename)
             torch.save(
                 {
                     "epoch": self.trainer.epoch + 1,
@@ -210,17 +210,17 @@ class CheckpointLoader(HookBase):
         self.strict = strict
 
     def before_train(self):
-        self.trainer.logger.info("=> Loading checkpoint & weight ...")
+        # self.trainer.logger.info("=> Loading checkpoint & weight ...")
         if self.trainer.cfg.weight and os.path.isfile(self.trainer.cfg.weight):
-            self.trainer.logger.info(f"Loading weight at: {self.trainer.cfg.weight}")
+            # self.trainer.logger.info(f"Loading weight at: {self.trainer.cfg.weight}")
             checkpoint = torch.load(
                 self.trainer.cfg.weight,
                 map_location=lambda storage, loc: storage.cuda(),
             )
-            self.trainer.logger.info(
-                f"Loading layer weights with keyword: {self.keywords}, "
-                f"replace keyword with: {self.replacement}"
-            )
+            # self.trainer.logger.info(
+            #     f"Loading layer weights with keyword: {self.keywords}, "
+            #     f"replace keyword with: {self.replacement}"
+            # )
             weight = OrderedDict()
             for key, value in checkpoint["state_dict"].items():
                 if not key.startswith("module."):
@@ -235,19 +235,19 @@ class CheckpointLoader(HookBase):
             load_state_info = self.trainer.model.load_state_dict(
                 weight, strict=self.strict
             )
-            self.trainer.logger.info(f"Missing keys: {load_state_info[0]}")
+            # self.trainer.logger.info(f"Missing keys: {load_state_info[0]}")
             if self.trainer.cfg.resume:
-                self.trainer.logger.info(
-                    f"Resuming train at eval epoch: {checkpoint['epoch']}"
-                )
+                # self.trainer.logger.info(
+                #     f"Resuming train at eval epoch: {checkpoint['epoch']}"
+                # )
                 self.trainer.start_epoch = checkpoint["epoch"]
                 self.trainer.best_metric_value = checkpoint["best_metric_value"]
                 self.trainer.optimizer.load_state_dict(checkpoint["optimizer"])
                 self.trainer.scheduler.load_state_dict(checkpoint["scheduler"])
                 if self.trainer.cfg.enable_amp:
                     self.trainer.scaler.load_state_dict(checkpoint["scaler"])
-        else:
-            self.trainer.logger.info(f"No weight found at: {self.trainer.cfg.weight}")
+        # else:
+        #     self.trainer.logger.info(f"No weight found at: {self.trainer.cfg.weight}")
 
 
 @HOOKS.register_module()
@@ -256,18 +256,19 @@ class PreciseEvaluator(HookBase):
         self.test_last = test_last
 
     def after_train(self):
-        self.trainer.logger.info(
-            ">>>>>>>>>>>>>>>> Start Precise Evaluation >>>>>>>>>>>>>>>>"
-        )
+        # self.trainer.logger.info(
+        #     ">>>>>>>>>>>>>>>> Start Precise Evaluation >>>>>>>>>>>>>>>>"
+        # )
         torch.cuda.empty_cache()
         cfg = self.trainer.cfg
         tester = TESTERS.build(
             dict(type=cfg.test.type, cfg=cfg, model=self.trainer.model)
         )
         if self.test_last:
-            self.trainer.logger.info("=> Testing on model_last ...")
+            # self.trainer.logger.info("=> Testing on model_last ...")
+            pass
         else:
-            self.trainer.logger.info("=> Testing on model_best ...")
+            # self.trainer.logger.info("=> Testing on model_best ...")
             best_path = os.path.join(
                 self.trainer.cfg.save_path, "model", "model_best.pth"
             )
@@ -300,9 +301,9 @@ class DataCacheOperator(HookBase):
         return "pointcept" + data_name.replace(os.path.sep, "-")
 
     def before_train(self):
-        self.trainer.logger.info(
-            f"=> Caching dataset: {self.data_root}, split: {self.split} ..."
-        )
+        # self.trainer.logger.info(
+        #     f"=> Caching dataset: {self.data_root}, split: {self.split} ..."
+        # )
         if is_main_process():
             for data_path in self.data_list:
                 cache_name = self.get_cache_name(data_path)
@@ -330,7 +331,7 @@ class RuntimeProfiler(HookBase):
         self.row_limit = row_limit
 
     def before_train(self):
-        self.trainer.logger.info("Profiling runtime ...")
+        # self.trainer.logger.info("Profiling runtime ...")
         from torch.profiler import profile, record_function, ProfilerActivity
 
         for i, input_dict in enumerate(self.trainer.train_loader):
@@ -360,29 +361,29 @@ class RuntimeProfiler(HookBase):
                 ) as backward_prof:
                     with record_function("model_inference"):
                         loss.backward()
-            self.trainer.logger.info(f"Profile: [{i + 1}/{self.warm_up + 1}]")
+            # self.trainer.logger.info(f"Profile: [{i + 1}/{self.warm_up + 1}]")
         if self.forward:
-            self.trainer.logger.info(
-                "Forward profile: \n"
-                + str(
-                    forward_prof.key_averages().table(
-                        sort_by=self.sort_by, row_limit=self.row_limit
-                    )
-                )
-            )
+            # self.trainer.logger.info(
+            #     "Forward profile: \n"
+            #     + str(
+            #         forward_prof.key_averages().table(
+            #             sort_by=self.sort_by, row_limit=self.row_limit
+            #         )
+            #     )
+            # )
             forward_prof.export_chrome_trace(
                 os.path.join(self.trainer.cfg.save_path, "forward_trace.json")
             )
 
         if self.backward:
-            self.trainer.logger.info(
-                "Backward profile: \n"
-                + str(
-                    backward_prof.key_averages().table(
-                        sort_by=self.sort_by, row_limit=self.row_limit
-                    )
-                )
-            )
+            # self.trainer.logger.info(
+            #     "Backward profile: \n"
+            #     + str(
+            #         backward_prof.key_averages().table(
+            #             sort_by=self.sort_by, row_limit=self.row_limit
+            #         )
+            #     )
+            # )
             backward_prof.export_chrome_trace(
                 os.path.join(self.trainer.cfg.save_path, "backward_trace.json")
             )
@@ -411,7 +412,7 @@ class RuntimeProfilerV2(HookBase):
         self.row_limit = row_limit
 
     def before_train(self):
-        self.trainer.logger.info("Profiling runtime ...")
+        # self.trainer.logger.info("Profiling runtime ...")
         from torch.profiler import (
             profile,
             record_function,
@@ -446,17 +447,17 @@ class RuntimeProfilerV2(HookBase):
             with record_function("model_backward"):
                 loss.backward()
             prof.step()
-            self.trainer.logger.info(
-                f"Profile: [{i + 1}/{(self.wait + self.warmup + self.active) * self.repeat}]"
-            )
-        self.trainer.logger.info(
-            "Profile: \n"
-            + str(
-                prof.key_averages().table(
-                    sort_by=self.sort_by, row_limit=self.row_limit
-                )
-            )
-        )
+            # self.trainer.logger.info(
+            #     f"Profile: [{i + 1}/{(self.wait + self.warmup + self.active) * self.repeat}]"
+            # )
+        # self.trainer.logger.info(
+        #     "Profile: \n"
+        #     + str(
+        #         prof.key_averages().table(
+        #             sort_by=self.sort_by, row_limit=self.row_limit
+        #         )
+        #     )
+        # )
         prof.stop()
 
         if self.interrupt:

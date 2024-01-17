@@ -12,12 +12,13 @@ import torch
 import torch.nn as nn
 import torch.utils.data
 from functools import partial
+from tqdm import tqdm
 
 if sys.version_info >= (3, 10):
     from collections.abc import Iterator
 else:
     from collections import Iterator
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 
 from .defaults import create_ddp_model, worker_init_fn
 from .hooks import HookBase, build_hooks
@@ -44,7 +45,7 @@ class TrainerBase:
         self.comm_info = dict()
         self.data_iterator: Iterator = enumerate([])
         self.storage: EventStorage
-        self.writer: SummaryWriter
+        # self.writer: SummaryWriter
 
     def register_hooks(self, hooks) -> None:
         hooks = build_hooks(hooks)
@@ -74,7 +75,7 @@ class TrainerBase:
                     # => run_step
                     self.run_step()
                     # => after_step
-                    self.after_step()
+                    step_loss = self.after_step()
                 # => after epoch
                 self.after_epoch()
             # => after train
@@ -109,8 +110,8 @@ class TrainerBase:
         comm.synchronize()
         for h in self.hooks:
             h.after_train()
-        if comm.is_main_process():
-            self.writer.close()
+        # if comm.is_main_process():
+        #     self.writer.close()
 
 
 @TRAINERS.register_module("DefaultTrainer")
@@ -131,8 +132,8 @@ class Trainer(TrainerBase):
         self.logger.info(f"Config:\n{cfg.pretty_text}")
         self.logger.info("=> Building model ...")
         self.model = self.build_model()
-        self.logger.info("=> Building writer ...")
-        self.writer = self.build_writer()
+        # self.logger.info("=> Building writer ...")
+        # self.writer = self.build_writer()
         self.logger.info("=> Building train dataset & dataloader ...")
         self.train_loader = self.build_train_loader()
         self.logger.info("=> Building val dataset & dataloader ...")
@@ -155,19 +156,26 @@ class Trainer(TrainerBase):
                 if comm.get_world_size() > 1:
                     self.train_loader.sampler.set_epoch(self.epoch)
                 self.model.train()
-                self.data_iterator = enumerate(self.train_loader)
+                # self.data_iterator = enumerate(self.train_loader)
                 self.before_epoch()
+                step_loss = torch.tensor([0])
                 # => run_epoch
-                for (
-                    self.comm_info["iter"],
-                    self.comm_info["input_dict"],
-                ) in self.data_iterator:
-                    # => before_step
-                    self.before_step()
-                    # => run_step
-                    self.run_step()
-                    # => after_step
-                    self.after_step()
+                with tqdm(self.train_loader) as _tqdm:
+                    for self.comm_info["iter"], self.comm_info["input_dict"] in enumerate(_tqdm):
+                        step_info = f'Epoch {self.epoch} Step {self.comm_info["iter"]}'
+                        _tqdm.set_description(step_info)
+                        if step_loss:
+                            postfix = " loss: {loss:.6f}".format(loss=step_loss.item())
+                            _tqdm.set_postfix_str(postfix)
+                            step_info += postfix
+                        # => before_step
+                        # self.before_step()
+                        # => run_step
+                        step_loss = self.run_step()
+                        # => after_step
+                        # self.after_step()
+                        if self.comm_info["iter"] % 10 == 0:
+                            self.logger.info(step_info)
                 # => after epoch
                 self.after_epoch()
             # => after train
@@ -199,6 +207,7 @@ class Trainer(TrainerBase):
         if self.cfg.empty_cache:
             torch.cuda.empty_cache()
         self.comm_info["model_output_dict"] = output_dict
+        return loss
 
     def build_model(self):
         model = build_model(self.cfg.model)
@@ -214,10 +223,10 @@ class Trainer(TrainerBase):
         )
         return model
 
-    def build_writer(self):
-        writer = SummaryWriter(self.cfg.save_path) if comm.is_main_process() else None
-        self.logger.info(f"Tensorboard writer logging dir: {self.cfg.save_path}")
-        return writer
+    # def build_writer(self):
+    #     writer = SummaryWriter(self.cfg.save_path) if comm.is_main_process() else None
+    #     self.logger.info(f"Tensorboard writer logging dir: {self.cfg.save_path}")
+    #     return writer
 
     def build_train_loader(self):
         train_data = build_dataset(self.cfg.data.train)

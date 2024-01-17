@@ -152,6 +152,10 @@ class CenterShift(object):
             else:
                 shift = [(x_min + x_max) / 2, (y_min + y_max) / 2, 0]
             data_dict["coord"] -= shift
+            if 'shift' in data_dict.keys():
+                data_dict["shift"] = [x + y for x, y in zip(data_dict["shift"], shift)]
+            else:
+                data_dict["shift"] = shift
         return data_dict
 
 

@@ -32,7 +32,7 @@ def collate_fn(batch):
         batch[-1] = torch.cumsum(batch[-1], dim=0).int()
         return batch
     elif isinstance(batch[0], Mapping):
-        batch = {key: collate_fn([d[key] for d in batch]) for key in batch[0]}
+        batch = {key: collate_fn([d[key] for d in batch]) for key in batch[0] if key != 'shift'}
         for key in batch.keys():
             if "offset" in key:
                 batch[key] = torch.cumsum(batch[key], dim=0)

@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from pointcept.models.losses import build_criteria
@@ -55,11 +56,13 @@ class DefaultSegmentorV2(nn.Module):
         seg_logits = self.seg_head(point.feat)
         # train
         if self.training:
-            loss = self.criteria(seg_logits, input_dict["segment"])
+            # loss = self.criteria(seg_logits, input_dict["segment"])
+            loss = self.criteria(seg_logits, torch.squeeze(input_dict["segment"]))
             return dict(loss=loss)
         # eval
         elif "segment" in input_dict.keys():
-            loss = self.criteria(seg_logits, input_dict["segment"])
+            # loss = self.criteria(seg_logits, input_dict["segment"])
+            loss = self.criteria(seg_logits, torch.squeeze(input_dict["segment"]))
             return dict(loss=loss, seg_logits=seg_logits)
         # test
         else:

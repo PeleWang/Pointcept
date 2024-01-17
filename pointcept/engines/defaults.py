@@ -10,6 +10,7 @@ Please cite our work if the code is helpful to you.
 import os
 import sys
 import argparse
+import datetime
 import multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel
 
@@ -75,7 +76,7 @@ def default_argument_parser(epilog=None):
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--config-file", default="", metavar="FILE", help="path to config file"
+        "--config-file", default="configs/scannet200/semseg-pt-v3m1-0-base-brackets.py", metavar="FILE", help="path to config file"
     )
     parser.add_argument(
         "--num-gpus", type=int, default=1, help="number of gpus *per machine*"
@@ -112,7 +113,13 @@ def default_config_parser(file_path, options):
         cfg = Config.fromfile(file_path)
     else:
         sep = file_path.find("-")
-        cfg = Config.fromfile(os.path.join(file_path[:sep], file_path[sep + 1 :]))
+        print(sep)
+        file_path = file_path[:sep] + '-' + file_path[sep + 1:]
+        cfg = Config.fromfile(file_path)
+    
+    now = datetime.datetime.now()
+    date_time = now.strftime('%c')
+    cfg.save_path = cfg.save_path + f'/{date_time}'
 
     if options is not None:
         cfg.merge_from_dict(options)
