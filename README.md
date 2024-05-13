@@ -15,8 +15,13 @@
 **Pointcept** is a powerful and flexible codebase for point cloud perception research. It is also an official implementation of the following paper:
 - **Point Transformer V3: Simpler, Faster, Stronger**  
 *Xiaoyang Wu, Li Jiang, Peng-Shuai Wang, Zhijian Liu, Xihui Liu, Yu Qiao, Wanli Ouyang, Tong He, Hengshuang Zhao*  
-arXiv Preprint 2023  
+IEEE Conference on Computer Vision and Pattern Recognition (**CVPR**) 2024 - Oral  
 [ Backbone ] [PTv3] - [ [arXiv](https://arxiv.org/abs/2312.10035) ] [ [Bib](https://xywu.me/research/ptv3/bib.txt) ] [ [Project](https://github.com/Pointcept/PointTransformerV3) ] &rarr; [here](https://github.com/Pointcept/PointTransformerV3)
+
+- **OA-CNNs: Omni-Adaptive Sparse CNNs for 3D Semantic Segmentation**  
+*Bohao Peng, Xiaoyang Wu, Li Jiang, Yukang Chen, Hengshuang Zhao, Zhuotao Tian, Jiaya Jia*  
+IEEE Conference on Computer Vision and Pattern Recognition (**CVPR**) 2024  
+[ Backbone ] [ OA-CNNs ] - [ [arXiv](https://arxiv.org/abs/2403.14418) ] [ [Bib](https://xywu.me/research/oacnns/bib.txt) ] &rarr; [here](#oa-cnns)
 
 - **PonderV2: Pave the Way for 3D Foundation Model with A Universal Pre-training Paradigm**  
 *Haoyi Zhu\*, Honghui Yang\*, Xiaoyang Wu\*, Di Huang\*, Sha Zhang, Xianglong He, Tong He, Hengshuang Zhao, Chunhua Shen, Yu Qiao, Wanli Ouyang*  
@@ -26,9 +31,8 @@ arXiv Preprint 2023
 
 - **Towards Large-scale 3D Representation Learning with Multi-dataset Point Prompt Training**  
 *Xiaoyang Wu, Zhuotao Tian, Xin Wen, Bohao Peng, Xihui Liu, Kaicheng Yu, Hengshuang Zhao*  
-arXiv Preprint 2023  
+IEEE Conference on Computer Vision and Pattern Recognition (**CVPR**) 2024  
 [ Pretrain ] [PPT] - [ [arXiv](https://arxiv.org/abs/2308.09718) ] [ [Bib](https://xywu.me/research/ppt/bib.txt) ] &rarr; [here](#point-prompt-training-ppt)
-
 
 - **Masked Scene Contrast: A Scalable Framework for Unsupervised 3D Representation Learning**  
 *Xiaoyang Wu, Xin Wen, Xihui Liu, Hengshuang Zhao*  
@@ -58,6 +62,7 @@ Backbone:
 [MinkUNet](https://github.com/NVIDIA/MinkowskiEngine) ([here](#sparseunet)),
 [SpUNet](https://github.com/traveller59/spconv) ([here](#sparseunet)),
 [SPVCNN](https://github.com/mit-han-lab/spvnas) ([here](#spvcnn)),
+[OACNNs](https://arxiv.org/abs/2403.14418) ([here](#oa-cnns)),
 [PTv1](https://arxiv.org/abs/2012.09164) ([here](#point-transformers)),
 [PTv2](https://arxiv.org/abs/2210.05666) ([here](#point-transformers)),
 [PTv3](https://arxiv.org/abs/2312.10035) ([here](#point-transformers)),
@@ -87,6 +92,9 @@ Datasets:
 
 
 ## Highlights
+- *Apr, 2024*: **PTv3** is selected as one of the 90 **Oral** papers (3.3% accepted papers, 0.78% submissions) by CVPR'24!
+- *Mar, 2024*: We release code for **OA-CNNs**, accepted by CVPR'24. Issue related to **OA-CNNs** can @Pbihao.
+- *Feb, 2024*: **PTv3** and **PPT** are accepted by CVPR'24, another **two** papers by our Pointcept team have also been accepted by CVPR'24 🎉🎉🎉. We will make them publicly available soon!
 - *Dec, 2023*: **PTv3** is released on arXiv, and the code is available in Pointcept. PTv3 is an efficient backbone model that achieves SOTA performances across indoor and outdoor scenarios.
 - *Aug, 2023*: **PPT** is released on arXiv. PPT presents a multi-dataset pre-training framework that achieves SOTA performance in both **indoor** and **outdoor** scenarios. It is compatible with various existing pre-training frameworks and backbones.  A **pre-release** version of the code is accessible; for those interested, please feel free to contact me directly for access.
 - *Mar, 2023*: We released our codebase, **Pointcept**, a highly potent tool for point cloud representation learning and perception. We welcome new work to join the _Pointcept_ family and highly recommend reading [Quick Start](#quick-start) before starting your trail.
@@ -491,6 +499,13 @@ sh scripts/train.sh -g 4 -d s3dis -c semseg-minkunet34c-0-base -n semseg-minkune
 sh scripts/train.sh -g 2 -d semantic_kitti -c semseg-minkunet34c-0-base -n semseg-minkunet34c-0-base
 ```
 
+#### OA-CNNs
+Introducing Omni-Adaptive 3D CNNs (**OA-CNNs**), a family of networks that integrates a lightweight module to greatly enhance the adaptivity of sparse CNNs at minimal computational cost. Without any self-attention modules, **OA-CNNs** favorably surpass point transformers in terms of accuracy in both indoor and outdoor scenes, with much less latency and memory cost. Issue related to **OA-CNNs** can @Pbihao.
+```bash
+# ScanNet
+sh scripts/train.sh -g 4 -d scannet -c semseg-oacnns-v1m1-0-base -n semseg-oacnns-v1m1-0-base
+```
+
 #### Point Transformers
 - **PTv3**
 
@@ -510,12 +525,20 @@ sh scripts/train.sh -g 8 -d scannet -c semseg-pt-v3m1-1-ppt-extreme -n semseg-pt
 # Scratched ScanNet200
 sh scripts/train.sh -g 4 -d scannet200 -c semseg-pt-v3m1-0-base -n semseg-pt-v3m1-0-base
 # Fine-tuning from  PPT joint training (ScanNet + Structured3D) with ScanNet200
-# TODO
+# PTV3_PPT_WEIGHT_PATH: Path to model weight trained by PPT multi-dataset joint training
+# e.g. exp/scannet/semseg-pt-v3m1-1-ppt-extreme/model/model_best.pth
+sh scripts/train.sh -g 4 -d scannet200 -c semseg-pt-v3m1-1-ppt-ft -n semseg-pt-v3m1-1-ppt-ft -w ${PTV3_PPT_WEIGHT_PATH}
 
 # Scratched S3DIS, S3DIS rely on RPE, also an example for disable flash attention
 sh scripts/train.sh -g 4 -d s3dis -c semseg-pt-v3m1-0-rpe -n semseg-pt-v3m1-0-rpe
 # PPT joint training (ScanNet + S3DIS + Structured3D) and evaluate in ScanNet
 sh scripts/train.sh -g 8 -d s3dis -c semseg-pt-v3m1-1-ppt-extreme -n semseg-pt-v3m1-1-ppt-extreme
+# S3DIS 6-fold cross validation
+# 1. The default configs are evaluated on Area_5, modify the "data.train.split", "data.val.split", and "data.test.split" to make the config evaluated on Area_1 ~ Area_6 respectively.
+# 2. Train and evaluate the model on each split of areas and gather result files located in "exp/s3dis/EXP_NAME/result/Area_x.pth" in one single folder, noted as RECORD_FOLDER.
+# 3. Run the following script to get S3DIS 6-fold cross validation performance:
+export PYTHONPATH=./
+python tools/test_s3dis_6fold.py --record_root ${RECORD_FOLDER}
 
 # Scratched nuScenes
 sh scripts/train.sh -g 4 -d nuscenes -c semseg-pt-v3m1-0-base -n semseg-pt-v3m1-0-base
@@ -525,8 +548,7 @@ sh scripts/train.sh -g 4 -d waymo -c semseg-pt-v3m1-0-base -n semseg-pt-v3m1-0-b
 # More configs and exp records for PTv3 will be available soon.
 ```
 
-Indoor semantic segmentation
-
+Indoor semantic segmentation  
 | Model | Benchmark | Additional Data | Num GPUs | Val mIoU | Config | Tensorboard | Exp Record |
 | :---: | :---: |:---------------:| :---: | :---: | :---: | :---: | :---: |
 | PTv3 | ScanNet |     &cross;     | 4 | 77.6% | [link](https://github.com/Pointcept/Pointcept/blob/main/configs/scannet/semseg-pt-v3m1-0-base.py) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tensorboard) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tree/main/scannet-semseg-pt-v3m1-0-base) |
@@ -536,8 +558,7 @@ Indoor semantic segmentation
 | PTv3 | S3DIS (Area5) |     &cross;     | 4 | 73.6% | [link](https://github.com/Pointcept/Pointcept/blob/main/configs/s3dis/semseg-pt-v3m1-0-rpe.py) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tensorboard) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tree/main/s3dis-semseg-pt-v3m1-0-rpe) |
 | PTv3 + PPT | S3DIS (Area5) |     &check;     | 8 | 75.4% | [link](https://github.com/Pointcept/Pointcept/blob/main/configs/s3dis/semseg-pt-v3m1-1-ppt-extreme.py) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tensorboard) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tree/main/s3dis-semseg-pt-v3m1-1-ppt-extreme) |
 
-Outdoor semantic segmentation
-
+Outdoor semantic segmentation  
 | Model | Benchmark | Additional Data | Num GPUs | Val mIoU | Config | Tensorboard | Exp Record |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | PTv3 | nuScenes | &cross; | 4 | 80.3 | [link](https://github.com/Pointcept/Pointcept/blob/main/configs/nuscenes/semseg-pt-v3m1-0-base.py) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tensorboard)|[link](https://huggingface.co/Pointcept/PointTransformerV3/tree/main/nuscenes-semseg-pt-v3m1-0-base) |
@@ -546,8 +567,9 @@ Outdoor semantic segmentation
 | PTv3 + PPT | SemanticKITTI | &check; | 8 | | | | |
 | PTv3 | Waymo | &cross; | 4 | 71.2 | [link](https://github.com/Pointcept/Pointcept/blob/main/configs/waymo/semseg-pt-v3m1-0-base.py) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tensorboard) | [link](https://huggingface.co/Pointcept/PointTransformerV3/tree/main/waymo-semseg-pt-v3m1-0-base) (log only) |
 | PTv3 + PPT | Waymo | &check; | 8 | | | | |
-* Model weights trained with Waymo Open Dataset cannot be released due to the regulations. 
 
+_**\*Released model weights are temporarily invalid as the model structure of PTv3 is adjusted.**_  
+_**\*Model weights trained with Waymo Open Dataset cannot be released due to the regulations.**_
 
 - **PTv2 mode2**
 
