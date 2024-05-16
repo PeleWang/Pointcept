@@ -67,7 +67,7 @@ class ShapeNetPartDataset(Dataset):
                 self.data_list += self.load_data_list(s)
         else:
             raise NotImplementedError
-
+        self.data_idx = [i for i in range(len(self.data_list))]
         logger = get_root_logger()
         logger.info(
             "Totally {} x {} samples in {} set.".format(
@@ -192,7 +192,7 @@ class ShapeNetPartDataset_Brackets(Dataset):
                 self.data_list += self.load_data_list(s)
         else:
             raise NotImplementedError
-
+        self.data_idx = [i for i in range(len(self.data_list))]
         logger = get_root_logger()
         logger.info(
             "Totally {} x {} samples in {} set.".format(

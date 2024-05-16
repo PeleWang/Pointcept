@@ -89,7 +89,7 @@ data = dict(
             dict(type="RandomRotate", angle=[-1 / 64, 1 / 64], axis="x", p=0.5),
             dict(type="RandomRotate", angle=[-1 / 64, 1 / 64], axis="y", p=0.5),
             dict(type="RandomScale", scale=[0.9, 1.1]),
-            dict(type="RandomShift", shift=[0.2, 0.2, 0.2]),
+            dict(type="RandomShift", shift=((-0.2, 0.2), (-0.2, 0.2), (0, 0))),
             dict(type="RandomFlip", p=0.5),
             dict(type="RandomJitter", sigma=0.005, clip=0.02),
             dict(type="ElasticDistortion", distortion_params=[[0.2, 0.4], [0.8, 1.6]]),
@@ -107,7 +107,7 @@ data = dict(
             ),
             dict(type="SphereCrop", point_max=102400, mode="random"),
             dict(type="CenterShift", apply_z=False),
-            dict(type="NormalizeColor"),
+            # dict(type="NormalizeColor"),
             dict(type="ShufflePoint"),
             dict(type="ToTensor"),
             dict(
